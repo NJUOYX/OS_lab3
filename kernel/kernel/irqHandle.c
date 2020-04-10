@@ -211,12 +211,21 @@ void syscallFork(struct TrapFrame *tf)
 			pcb[new_pid].stackTop = (uint32_t) & (pcb[new_pid].regs);
 			pcb[new_pid].prevStackTop = (uint32_t) & (pcb[new_pid].stackTop);
 			pcb[new_pid].state = STATE_RUNNABLE;
-
+			pcb[new_pid].sleepTime = 0;
+			pcb[new_pid].timeCount = 0;
+			pcb[new_pid].regs = pcb[current].regs;
+			pcb[new_pid].regs.esp = (new_pid+1)*0x100000;
+			for(int j = 0;j<MAX_STACK_SIZE;++j)
+				pcb[new_pid].stack[j] = pcb[current].stack[j];
+			pcb[new_pid].regs.eax = 0;
+			pcb[current].regs.eax = new_pid;
+			asm volatile("int $0x20");
 			return;
-		}
+		}	
 	}
-	
-	return;
+	pcb[current].regs.eax = -1;
+	asm volatile("int $0x20");
+	return ;
 }
 
 void syscallExec(struct TrapFrame *tf)
