@@ -111,11 +111,13 @@ void timerHandle(struct TrapFrame *tf)
 	pcb[current].timeCount++;
 	if (pcb[current].timeCount == MAX_TIME_COUNT)
 	{
-		int index = current+1;
-		if(index == MAX_PCB_NUM)
+		int index = current + 1;
+		if (index == MAX_PCB_NUM)
 			index = 0;
-		for(int i = index;i<MAX_PCB_NUM;++i){
-			if(pcb[i].state == STATE_RUNNABLE){
+		for (int i = index; i < MAX_PCB_NUM; ++i)
+		{
+			if (pcb[i].state == STATE_RUNNABLE)
+			{
 				__switch__();
 				break;
 			}
@@ -200,6 +202,20 @@ void syscallPrint(struct TrapFrame *tf)
 void syscallFork(struct TrapFrame *tf)
 {
 	// TODO in lab3
+	uint32_t new_pid = 0;
+	for (int i = 0; i < MAX_PCB_NUM; ++i)
+	{
+		if (pcb[i].state == STATE_DEAD)
+		{
+			new_pid = pcb[i].pid = i;
+			pcb[new_pid].stackTop = (uint32_t) & (pcb[new_pid].regs);
+			pcb[new_pid].prevStackTop = (uint32_t) & (pcb[new_pid].stackTop);
+			pcb[new_pid].state = STATE_RUNNABLE;
+
+			return;
+		}
+	}
+	
 	return;
 }
 
@@ -214,7 +230,7 @@ void syscallSleep(struct TrapFrame *tf)
 {
 	// TODO in lab3
 	uint32_t time = tf->ecx;
-	if(time<=0)
+	if (time <= 0)
 		return;
 	pcb[current].sleepTime = time;
 	pcb[current].state = STATE_BLOCKED;
