@@ -1,6 +1,8 @@
 #include "x86.h"
 #include "device.h"
 
+typedef void (ELF)(void);
+
 extern TSS tss;
 extern ProcessTable pcb[MAX_PCB_NUM];
 extern int current;
@@ -214,7 +216,8 @@ void syscallFork(struct TrapFrame *tf)
 			pcb[new_pid].sleepTime = 0;
 			pcb[new_pid].timeCount = 0;
 			pcb[new_pid].regs = pcb[current].regs;
-			pcb[new_pid].regs.esp = (new_pid+1)*0x100000;
+			pcb[new_pid].regs.esp += (new_pid-current)*0x100000;
+			pcb[new_pid].regs.eip += (new_pid-current)*0x100000;
 			for(int j = 0;j<MAX_STACK_SIZE;++j)
 				pcb[new_pid].stack[j] = pcb[current].stack[j];
 			pcb[new_pid].regs.eax = 0;
@@ -231,7 +234,21 @@ void syscallFork(struct TrapFrame *tf)
 void syscallExec(struct TrapFrame *tf)
 {
 	// TODO in lab3
-	// hint: ret = loadElf(tmp, (current + 1) * 0x100000, &entry);
+	uint32_t entry = 0;
+	char*filename = tf->ecx;
+	int len = tf->ebx;
+	int sel = tf->ds;
+	char character;
+	asm volatile("movw %0, %%es" ::"m"(sel));
+	for(int i = 0;i<len;++i)
+		asm volatile("movb %%es:(%1), %0"
+					 : "=r"(character)
+					 : "r"(filename + i));
+	uint32_t ret = loadElf(filename, (current + 1) * 0x100000, &entry);
+	if(ret == -1)
+		return ;
+	ELF* enter = (ELF*)entry;
+	enter();
 	return;
 }
 
