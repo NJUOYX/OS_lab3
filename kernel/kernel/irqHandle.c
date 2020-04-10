@@ -213,6 +213,12 @@ void syscallExec(struct TrapFrame *tf)
 void syscallSleep(struct TrapFrame *tf)
 {
 	// TODO in lab3
+	uint32_t time = tf->ecx;
+	if(time<=0)
+		return;
+	pcb[current].sleepTime = time;
+	pcb[current].state = STATE_BLOCKED;
+	asm volatile("int $0x20");
 	return;
 }
 
