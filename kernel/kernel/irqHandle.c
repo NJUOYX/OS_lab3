@@ -225,6 +225,8 @@ void syscallSleep(struct TrapFrame *tf)
 void syscallExit(struct TrapFrame *tf)
 {
 	// TODO in lab3
+	pcb[current].state = STATE_DEAD;
+	asm volatile("int $0x20");
 	return;
 }
 
