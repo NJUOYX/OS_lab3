@@ -113,8 +113,7 @@ void timerHandle(struct TrapFrame *tf)
 				pcb[i].sleepTime--;
 		}
 	}
-	pcb[current].timeCount++;
-	if (pcb[current].timeCount == MAX_TIME_COUNT)
+	if (pcb[current].timeCount >= MAX_TIME_COUNT)
 	{
 		int index = current + 1;
 		if (index == MAX_PCB_NUM)
@@ -125,11 +124,13 @@ void timerHandle(struct TrapFrame *tf)
 			{
 				pcb[current].state = STATE_RUNNABLE;
 				pcb[i].state = STATE_RUNNING;
+				current = i;
 				__switch__();
 				break;
 			}
 		}
 	}
+	pcb[current].timeCount++;
 	return;
 }
 
