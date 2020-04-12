@@ -216,14 +216,14 @@ void syscallFork(struct TrapFrame *tf)
 		if (pcb[i].state == STATE_DEAD)
 		{
 			new_pid = pcb[i].pid = i;
-			pcb[new_pid].stackTop = (uint32_t) & (pcb[new_pid].regs);
-			pcb[new_pid].prevStackTop = (uint32_t) & (pcb[new_pid].stackTop);
+			pcb[new_pid].stackTop = pcb[current].stackTop;
+			pcb[new_pid].prevStackTop = pcb[current].prevStackTop;
 			pcb[new_pid].state = STATE_RUNNABLE;
 			pcb[new_pid].sleepTime = 0;
 			pcb[new_pid].timeCount = 0;
 			pcb[new_pid].regs = pcb[current].regs;
-			pcb[new_pid].regs.esp += (new_pid-current)*0x100000;
-			pcb[new_pid].regs.eip += (new_pid-current)*0x100000;
+			pcb[new_pid].regs.cs = USEL(i*2+1);
+			pcb[new_pid].regs.ss = USEL(i*2+2);
 			for(int j = 0;j<MAX_STACK_SIZE;++j)
 				pcb[new_pid].stack[j] = pcb[current].stack[j];
 			pcb[new_pid].regs.eax = 0;
