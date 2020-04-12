@@ -89,7 +89,7 @@ int loadElf(const char *filename, uint32_t physAddr, uint32_t *entry)
 		readBlock(&sBlock, &inode, i, (uint8_t *)(elf + i * sBlock.blockSize));
 	}
 
-	entry = ((struct ELFHeader *)elf)->entry; // entry address of the program
+	entry = (uint32_t*)((struct ELFHeader *)elf)->entry; // entry address of the program
 	phoff = (struct ProgramHeader *)((struct ELFHeader *)elf)->phoff;
 	offset = ((struct ProgramHeader *)(elf + phoff))->off;
 	for (int i = 0; i < phoff->filesz; ++i)
@@ -100,7 +100,7 @@ int loadElf(const char *filename, uint32_t physAddr, uint32_t *entry)
 	}
 
 	// enterUserSpace(uMainEntry);
-	return entry;
+	return (uint32_t)entry;
 }
 
 /*

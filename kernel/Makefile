@@ -14,6 +14,7 @@ KOBJS = $(KCFILES:.c=.o) $(KSFILES:.S=.o)
 
 kmain.bin: $(KOBJS)
 	$(LD) $(LDFLAGS) -e kEntry -Ttext 0x00100000 -o kMain.elf $(KOBJS)
+	$(LD) $(LDFLAGS) -e kEntry -Ttext 0x00100000 -o kMain.o $(KOBJS)
 	@#objcopy -S -j .text -j .rodata -j .eh_frame -j .data -j .bss -O binary kMain.elf kMain.bin
 	@#objcopy -O binary kMain.elf kMain.bin
 	@../utils/genKernel.pl kMain.elf

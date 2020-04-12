@@ -106,9 +106,12 @@ void timerHandle(struct TrapFrame *tf)
 	// TODO in lab3
 	for (int i = 0; i < MAX_PCB_NUM; ++i)
 	{
-		pcb[i].sleepTime--;
-		if (pcb[i].sleepTime == 0)
-			pcb[i].state == STATE_RUNNABLE;
+		if(pcb[i].state == STATE_BLOCKED){
+			if(pcb[i].sleepTime == 0)
+				pcb[i].state = STATE_RUNNABLE;
+			else
+				pcb[i].sleepTime--;
+		}
 	}
 	pcb[current].timeCount++;
 	if (pcb[current].timeCount == MAX_TIME_COUNT)
@@ -116,10 +119,12 @@ void timerHandle(struct TrapFrame *tf)
 		int index = current + 1;
 		if (index == MAX_PCB_NUM)
 			index = 0;
-		for (int i = index; i < MAX_PCB_NUM; ++i)
+		for (int i = index; i !=current; i=(i+1)%MAX_PCB_NUM)
 		{
 			if (pcb[i].state == STATE_RUNNABLE)
 			{
+				pcb[current].state = STATE_RUNNABLE;
+				pcb[i].state = STATE_RUNNING;
 				__switch__();
 				break;
 			}
@@ -235,7 +240,7 @@ void syscallExec(struct TrapFrame *tf)
 {
 	// TODO in lab3
 	uint32_t entry = 0;
-	char*filename = tf->ecx;
+	char*filename = (char*)tf->ecx;
 	int len = tf->ebx;
 	int sel = tf->ds;
 	char character;
