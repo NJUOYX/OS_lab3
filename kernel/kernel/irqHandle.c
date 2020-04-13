@@ -113,7 +113,7 @@ void timerHandle(struct TrapFrame *tf)
 				pcb[i].sleepTime--;
 		}
 	}
-	if (pcb[current].timeCount >= MAX_TIME_COUNT)
+	if (pcb[current].timeCount >= MAX_TIME_COUNT||pcb[current].state == STATE_BLOCKED)
 	{
 		int index = current + 1;
 		if (index == MAX_PCB_NUM)
@@ -263,12 +263,12 @@ void syscallExec(struct TrapFrame *tf)
 	char*filename = (char*)tf->ecx;
 	int len = tf->ebx;
 	int sel = tf->ds;
-	char character;
+	char character[50]={0};
 	asm volatile("movw %0, %%es" ::"m"(sel));
 	for(int i = 0;i<len;++i)
 		asm volatile("movb %%es:(%1), %0"
-					 : "=r"(character)
-					 : "r"(filename + i));
+					 : "=r"(character[i])
+					 : "r"(filename));
 	uint32_t ret = loadElf(filename, (current + 1) * 0x100000, &entry);
 	if(ret == -1)
 		return ;

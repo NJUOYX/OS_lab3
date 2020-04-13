@@ -72,35 +72,34 @@ void initFS()
 
 int loadElf(const char *filename, uint32_t physAddr, uint32_t *entry)
 {
-	// TODO in lab3
 	int i = 0;
-
-	struct ProgramHeader *phoff; // program header offset
-	int offset = 0x0;			 // .text section offset
-	uint32_t elf = 0x0;			 // physical memory addr to load
+	int phoff = 0;		 // program header offset
+	int offset = 0;	 // .text section offset
+	uint32_t elf = (current+1)*0x100000; // physical memory addr to load
+	uint32_t uMainEntry = 0;
 	Inode inode;
 	int inodeOffset = 0;
 
-	int ret = readInode(&sBlock, &inode, &inodeOffset, filename);
-	if (ret == -1)
-		return -1;
+	readInode(&sBlock, &inode, &inodeOffset, filename);
+
 	for (i = 0; i < inode.blockCount; i++)
 	{
 		readBlock(&sBlock, &inode, i, (uint8_t *)(elf + i * sBlock.blockSize));
 	}
 
-	entry = (uint32_t*)((struct ELFHeader *)elf)->entry; // entry address of the program
-	phoff = (struct ProgramHeader *)((struct ELFHeader *)elf)->phoff;
+	uMainEntry = ((struct ELFHeader *)elf)->entry; // entry address of the program
+	phoff = ((struct ELFHeader *)elf)->phoff;
 	offset = ((struct ProgramHeader *)(elf + phoff))->off;
-	for (int i = 0; i < phoff->filesz; ++i)
-		*(uint8_t *)(phoff->vaddr + i) = 0;
-	for (i = 0; i < phoff->memsz; i++)
+
+	for (i = 0; i < 200 * 512; i++)
 	{
-		*(uint8_t *)(phoff->vaddr + i) = *(uint8_t *)(elf + i + offset);
+		*(uint8_t*)(i) = *(uint8_t *)(elf+i+offset);
+		*(uint8_t *)(elf + i) = *(uint8_t *)(elf + i + offset);
 	}
 
 	// enterUserSpace(uMainEntry);
-	return (uint32_t)entry;
+	entry = (uint32_t*)uMainEntry;
+	return uMainEntry;
 }
 
 /*
