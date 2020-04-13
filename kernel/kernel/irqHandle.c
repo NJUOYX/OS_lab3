@@ -123,6 +123,7 @@ void timerHandle(struct TrapFrame *tf)
 			if (pcb[i].state == STATE_RUNNABLE)
 			{
 				pcb[current].state = STATE_RUNNABLE;
+				pcb[current].timeCount = 0;
 				pcb[i].state = STATE_RUNNING;
 				current = i;
 				__switch__();
@@ -221,14 +222,28 @@ void syscallFork(struct TrapFrame *tf)
 			pcb[new_pid].state = STATE_RUNNABLE;
 			pcb[new_pid].sleepTime = 0;
 			pcb[new_pid].timeCount = 0;
-			pcb[new_pid].regs = pcb[current].regs;
+
+			pcb[new_pid].regs.ebp = pcb[current].regs.ebp;
+			pcb[new_pid].regs.ebx = pcb[current].regs.ebx;
+			pcb[new_pid].regs.ecx = pcb[current].regs.ecx;
+			pcb[new_pid].regs.edi = pcb[current].regs.edi;
+			pcb[new_pid].regs.edx = pcb[current].regs.edx;
+			pcb[new_pid].regs.eflags = pcb[current].regs.eflags;
+			pcb[new_pid].regs.eip = pcb[current].regs.eip;
+			pcb[new_pid].regs.error = pcb[current].regs.error;
+			pcb[new_pid].regs.esi = pcb[current].regs.esi;
+			pcb[new_pid].regs.esp = pcb[current].regs.esp;
+			pcb[new_pid].regs.irq = pcb[current].regs.irq;
+			pcb[new_pid].regs.xxx = pcb[current].regs.xxx;
+
 			pcb[new_pid].regs.cs = USEL(i*2+1);
-			pcb[new_pid].regs.ss = USEL(i*2+2);
+			pcb[new_pid].regs.ss = pcb[new_pid].regs.gs = pcb[new_pid].regs.fs=
+			pcb[new_pid].regs.es = pcb[new_pid].regs.ds = USEL(i*2+2);
 			for(int j = 0;j<MAX_STACK_SIZE;++j){
 				pcb[new_pid].stack[j] = pcb[current].stack[j];
 			}
 			for(int j = 0;j<0x100000;++j){
-				*(uint8_t*)(i*0x100000) = *(uint8_t*)(current*0x100000);
+				*(uint8_t*)((i+1)*0x100000+j) = *(uint8_t*)((current+1)*0x100000+j);
 			}
 			pcb[new_pid].regs.eax = 0;
 			pcb[current].regs.eax = new_pid;
