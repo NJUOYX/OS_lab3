@@ -263,7 +263,11 @@ void syscallExec(struct TrapFrame *tf)
 	char*filename = (char*)tf->ecx;
 	int len = tf->ebx;
 	int sel = tf->ds;
+<<<<<<< HEAD
 	char character[30];
+=======
+	char character[50]={0};
+>>>>>>> 88535d7dfd2c37dcb675eca3c19cd00234da8c0e
 	asm volatile("movw %0, %%es" ::"m"(sel));
 	for(int i = 0;i<len;++i)
 		asm volatile("movb %%es:(%1), %0"
