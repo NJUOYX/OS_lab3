@@ -263,12 +263,12 @@ void syscallExec(struct TrapFrame *tf)
 	char*filename = (char*)tf->ecx;
 	int len = tf->ebx;
 	int sel = tf->ds;
-	char character;
+	char character[30];
 	asm volatile("movw %0, %%es" ::"m"(sel));
 	for(int i = 0;i<len;++i)
 		asm volatile("movb %%es:(%1), %0"
-					 : "=r"(character)
-					 : "r"(filename + i));
+					 : "=r"(character[i])
+					 : "r"(filename));
 	uint32_t ret = loadElf(filename, (current + 1) * 0x100000, &entry);
 	if(ret == -1)
 		return ;
